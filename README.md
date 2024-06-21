@@ -53,7 +53,9 @@ int main(void) {
     SDL_RenderPresent(renderer);
   }
 
+  // Destroying simui context.
   simui_context_destroy(&context);
+
   SDL_DestroyRenderer(renderer);
   SDL_DestroyWindow(window);
 
