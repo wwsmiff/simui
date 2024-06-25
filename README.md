@@ -30,20 +30,16 @@ int main(void) {
 
   // Creating a simui window.
   simui_window_create(&context, (vec2f){90.0f, 90.0f}, (vec2f){300.0f, 300.0f});
-  
-  // Setting the title of the created window.
+  // Setting a new title for the simui window.
   simui_window_set_title(&context, "A new title.");
-
-  // Adding some text to the window.
+  // Adding text to the simui window.
   simui_window_text_create(&context, "Lorem ipsum dolor.", (vec2f){5.0f, 5.0f});
 
-  // Create another simui window.
+  // Creating a simui window.
   simui_window_create(&context, (vec2f){30.0f, 30.0f}, (vec2f){300.0f, 300.0f});
-
-  // Adding some text to the window.
+  // Adding text to the simui window.
   simui_window_text_create(&context, "The quick brown fox.",
-                           (vec2f){5.0f, 5.0f});
-
+                           (vec2f){5.0f, 5.0f}); 
 
   while (running) {
     while (SDL_PollEvent(&e)) {
