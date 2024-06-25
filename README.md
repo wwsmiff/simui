@@ -28,11 +28,22 @@ int main(void) {
   // Creating a simui context and specifying the window and renderer to use.
   simui_context_t context = simui_context_create(target_window, renderer);
 
-  // Creating 4 simui windows.
-  simui_window_create(&context, (vec2f){0.0f, 0.0f}, (vec2f){300.0f, 300.0f});
-  simui_window_create(&context, (vec2f){30.0f, 30.0f}, (vec2f){300.0f, 300.0f});
-  simui_window_create(&context, (vec2f){60.0f, 60.0f}, (vec2f){300.0f, 300.0f});
+  // Creating a simui window.
   simui_window_create(&context, (vec2f){90.0f, 90.0f}, (vec2f){300.0f, 300.0f});
+  
+  // Setting the title of the created window.
+  simui_window_set_title(&context, "A new title.");
+
+  // Adding some text to the window.
+  simui_window_text_create(&context, "Lorem ipsum dolor.", (vec2f){5.0f, 5.0f});
+
+  // Create another simui window.
+  simui_window_create(&context, (vec2f){30.0f, 30.0f}, (vec2f){300.0f, 300.0f});
+
+  // Adding some text to the window.
+  simui_window_text_create(&context, "The quick brown fox.",
+                           (vec2f){5.0f, 5.0f});
+
 
   while (running) {
     while (SDL_PollEvent(&e)) {
