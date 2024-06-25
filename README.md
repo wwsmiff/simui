@@ -1,6 +1,6 @@
 # SIMUI
 
-**S**DL **I**mmediate **M**ode **UI**
+**S**DL2 **I**mmediate **M**ode **UI**
 
 `simui` is an immediate mode UI library for SDL2. It can be used within SDL2 applications or as a standalone UI library.
 Creating and destroying the `SDL_Window` and `SDL_Renderer` and events specific to the user-created `SDL_Window`
