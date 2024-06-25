@@ -29,10 +29,10 @@ int main(void) {
   simui_context_t context = simui_context_create(target_window, renderer);
 
   // Creating 4 simui windows.
-  simui_window_new(&context, (vec2f){0.0f, 0.0f}, (vec2f){300.0f, 300.0f});
-  simui_window_new(&context, (vec2f){30.0f, 30.0f}, (vec2f){300.0f, 300.0f});
-  simui_window_new(&context, (vec2f){60.0f, 60.0f}, (vec2f){300.0f, 300.0f});
-  simui_window_new(&context, (vec2f){90.0f, 90.0f}, (vec2f){300.0f, 300.0f});
+  simui_window_create(&context, (vec2f){0.0f, 0.0f}, (vec2f){300.0f, 300.0f});
+  simui_window_create(&context, (vec2f){30.0f, 30.0f}, (vec2f){300.0f, 300.0f});
+  simui_window_create(&context, (vec2f){60.0f, 60.0f}, (vec2f){300.0f, 300.0f});
+  simui_window_create(&context, (vec2f){90.0f, 90.0f}, (vec2f){300.0f, 300.0f});
 
   while (running) {
     while (SDL_PollEvent(&e)) {

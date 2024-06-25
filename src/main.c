@@ -1,9 +1,12 @@
 #include "context.h"
+#include "text.h"
 #include "window.h"
 #include <SDL2/SDL.h>
+#include <SDL2/SDL_ttf.h>
 
 int main(void) {
   SDL_Init(SDL_INIT_VIDEO);
+  TTF_Init();
 
   SDL_Window *target_window =
       SDL_CreateWindow("Test Window", SDL_WINDOWPOS_CENTERED,
@@ -15,10 +18,14 @@ int main(void) {
   SDL_Event e;
 
   simui_context_t context = simui_context_create(target_window, renderer);
-  simui_window_new(&context, (vec2f){0.0f, 0.0f}, (vec2f){300.0f, 300.0f});
-  simui_window_new(&context, (vec2f){30.0f, 30.0f}, (vec2f){300.0f, 300.0f});
-  simui_window_new(&context, (vec2f){60.0f, 60.0f}, (vec2f){300.0f, 300.0f});
-  simui_window_new(&context, (vec2f){90.0f, 90.0f}, (vec2f){300.0f, 300.0f});
+
+  simui_window_create(&context, (vec2f){90.0f, 90.0f}, (vec2f){300.0f, 300.0f});
+  simui_window_set_title(&context, "A new title.");
+  simui_window_text_create(&context, "Lorem ipsum dolor.", (vec2f){5.0f, 5.0f});
+
+  simui_window_create(&context, (vec2f){30.0f, 30.0f}, (vec2f){300.0f, 300.0f});
+  simui_window_text_create(&context, "The quick brown fox.",
+                           (vec2f){5.0f, 5.0f});
 
   while (running) {
     while (SDL_PollEvent(&e)) {
