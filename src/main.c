@@ -45,5 +45,10 @@ int main(void) {
 
   simui_context_destroy(&context);
 
+  SDL_DestroyWindow(target_window);
+  SDL_DestroyRenderer(renderer);
+  SDL_Quit();
+  TTF_Quit();
+
   return 0;
 }

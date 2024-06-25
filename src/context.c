@@ -183,4 +183,6 @@ void simui_context_destroy(simui_context_t *context) {
     SDL_DestroyTexture(context->text_buffer[i]->texture);
     free(context->text_buffer[i]);
   }
+
+  TTF_CloseFont(context->font);
 }

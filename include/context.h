@@ -25,8 +25,7 @@ typedef struct simui_context_t {
   struct _TTF_Font *font;
   size_t window_buffer_index;
   size_t text_buffer_index;
-  size_t dynamic_text_buffer_index;
-  size_t focused_uuid;
+  uint64_t focused_uuid;
   bool sort_window_buffer;
 } simui_context_t;
 
