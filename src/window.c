@@ -18,19 +18,20 @@ void simui_window_create(struct simui_context_t *context, vec2f pos,
   window->font_uuid_buffer_index = 0;
   char window_title[256] = {0};
   sprintf(window_title, "window uuid: %llx", window->uuid);
-  window->title_uuid =
-      simui_text_create(context, window_title, (vec2f){.x = 0.0f, .y = 0.0f});
+
+  context->window_buffer[context->window_buffer_index++] = window;
+  context->focused_uuid = window->uuid;
+  context->sort_window_buffer = true;
+
+  window->title_uuid = simui_window_text_create(context, window_title,
+                                                (vec2f){.x = 0.0f, .y = 0.0f});
+
   simui_text_t *title_text =
       context->text_buffer[context->text_buffer_index - 1];
-  context->sort_window_buffer = true;
-  window->font_uuid_buffer[window->font_uuid_buffer_index++] =
-      window->title_uuid;
-  context->focused_uuid = window->uuid;
   title_text->pos.x = ((window->pos.x) / 2.0f) +
                       ((window->pos.x + window->size.x) / 2.0f) -
                       (title_text->size.x / 2.0f);
   title_text->pos.y = (window->pos.y + 15.0f) - (title_text->size.y / 2.0f);
-  context->window_buffer[context->window_buffer_index++] = window;
   strncpy(title_text->data, window_title, CHAR_LIMIT);
 }
 

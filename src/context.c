@@ -50,24 +50,26 @@ void regenerate_fonts(simui_context_t *context) {
 // simui context implementation
 simui_context_t simui_context_create(SDL_Window *target_window,
                                      SDL_Renderer *renderer) {
-  simui_context_t new_context;
+
+  simui_context_t context;
+
   if (target_window == NULL || renderer == NULL) {
     fprintf(stderr, "Need to specify window and renderer.\n");
     exit(1);
   } else {
-    new_context.target_window = target_window;
-    new_context.renderer = renderer;
+    context.target_window = target_window;
+    context.renderer = renderer;
   }
 
-  new_context.window_buffer_index = 0;
-  new_context.text_buffer_index = 0;
-  new_context.focused_uuid = 0;
-  new_context.sort_window_buffer = false;
-  SDL_RWops *font_data_rwops = SDL_RWFromMem(
-      proggy_clean_font_data, proggy_clean_font_data_len * sizeof(uint32_t));
-  new_context.font = TTF_OpenFontRW(font_data_rwops, 0, 16);
+  context.window_buffer_index = 0;
+  context.text_buffer_index = 0;
+  context.focused_uuid = 0;
+  context.sort_window_buffer = false;
+  SDL_RWops *font_data_rwops =
+      SDL_RWFromMem(proggy_clean_font_data, proggy_clean_font_data_len);
+  context.font = TTF_OpenFontRW(font_data_rwops, 0, 32);
   SDL_RWclose(font_data_rwops);
-  return new_context;
+  return context;
 }
 
 void simui_context_handle_event(simui_context_t *context, SDL_Event *event) {
@@ -124,17 +126,15 @@ void simui_context_handle_event(simui_context_t *context, SDL_Event *event) {
   }
 
   if (context->window_buffer[context->window_buffer_index - 1]->moving) {
-    context->window_buffer[context->window_buffer_index - 1]->pos.x =
-        event->motion.x - offset.x;
-    context->window_buffer[context->window_buffer_index - 1]->pos.y =
-        event->motion.y - offset.y;
+    simui_window_t *current_window =
+        context->window_buffer[context->window_buffer_index - 1];
+    current_window->pos.x = event->motion.x - offset.x;
+    current_window->pos.y = event->motion.y - offset.y;
     for (size_t i = 0; i < font_offset_index; ++i) {
       font_offsets[i].text->pos.x =
-          context->window_buffer[context->window_buffer_index - 1]->pos.x +
-          font_offsets[i].offset.x;
+          current_window->pos.x + font_offsets[i].offset.x;
       font_offsets[i].text->pos.y =
-          context->window_buffer[context->window_buffer_index - 1]->pos.y +
-          font_offsets[i].offset.y;
+          current_window->pos.y + font_offsets[i].offset.y;
     }
   }
 }
