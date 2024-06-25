@@ -61,7 +61,6 @@ simui_context_t simui_context_create(SDL_Window *target_window,
 
   new_context.window_buffer_index = 0;
   new_context.text_buffer_index = 0;
-  new_context.dynamic_text_buffer_index = 0;
   new_context.focused_uuid = 0;
   new_context.sort_window_buffer = false;
   SDL_RWops *font_data_rwops = SDL_RWFromMem(
