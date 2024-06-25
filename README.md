@@ -70,6 +70,8 @@ int main(void) {
 }
 ```
 
+![Image not found.](screenshots/screenshot_1.png)
+
 # Requirements
 - C compiler
 - SDL2
