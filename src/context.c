@@ -24,6 +24,10 @@ void simui_window_sort(simui_context_t *context) {
         simui_window_t tmp = *a;
         *a = *b;
         *b = tmp;
+        char tmp_buffer[256] = {0};
+        strcpy(tmp_buffer, a->title);
+        strcpy(a->title, b->title);
+        strcpy(b->title, tmp_buffer);
       }
     }
   }

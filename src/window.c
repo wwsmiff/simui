@@ -16,23 +16,20 @@ void simui_window_create(struct simui_context_t *context, vec2f pos,
   window->moving = false;
   window->uuid = ((uint64_t)(rand() % UINT64_MAX) << 16) ^ window->priority;
   window->font_uuid_buffer_index = 0;
-  char window_title[256] = {0};
-  sprintf(window_title, "window uuid: %llx", window->uuid);
+  sprintf(window->title, "window uuid: %llx", window->uuid);
 
   context->window_buffer[context->window_buffer_index++] = window;
   context->focused_uuid = window->uuid;
   context->sort_window_buffer = true;
 
-  window->title_uuid = simui_window_text_create(context, window_title,
+  window->title_uuid = simui_window_text_create(context, window->title,
                                                 (vec2f){.x = 0.0f, .y = 0.0f});
-
   simui_text_t *title_text =
       context->text_buffer[context->text_buffer_index - 1];
   title_text->pos.x = ((window->pos.x) / 2.0f) +
                       ((window->pos.x + window->size.x) / 2.0f) -
                       (title_text->size.x / 2.0f);
   title_text->pos.y = (window->pos.y + 15.0f) - (title_text->size.y / 2.0f);
-  strncpy(title_text->data, window_title, CHAR_LIMIT);
 }
 
 void simui_window_set_title(struct simui_context_t *context,
@@ -40,7 +37,7 @@ void simui_window_set_title(struct simui_context_t *context,
   simui_window_t *current_window =
       context->window_buffer[context->window_buffer_index - 1];
   simui_text_t *title_text = get_text(context, current_window->title_uuid);
-  strncpy(title_text->data, title, CHAR_LIMIT);
+  title_text->data = title;
   SDL_DestroyTexture(title_text->texture);
   SDL_Surface *font_surface =
       TTF_RenderText_Solid(context->font, title_text->data,
