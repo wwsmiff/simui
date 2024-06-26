@@ -36,8 +36,8 @@ void simui_window_set_title(struct simui_context_t *context,
                             const char *title) {
   simui_window_t *current_window =
       context->window_buffer[context->window_buffer_index - 1];
+  strncpy(current_window->title, title, 256);
   simui_text_t *title_text = get_text(context, current_window->title_uuid);
-  title_text->data = title;
   SDL_DestroyTexture(title_text->texture);
   SDL_Surface *font_surface =
       TTF_RenderText_Solid(context->font, title_text->data,
