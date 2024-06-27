@@ -79,6 +79,9 @@ int main(void) {
 - SDL2
 - SDL2_ttf
 
+# Credits
+[Proggy Clean Font](https://www.dafont.com/proggy-clean.font)
+
 # Build and run
 ```
 git clone https://github.com/wwsmiff/simui
