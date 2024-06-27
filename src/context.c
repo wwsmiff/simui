@@ -2,9 +2,11 @@
 #include "font_data.h"
 #include "helper.h"
 #include "text.h"
+#include "widget.h"
 #include "window.h"
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
+#include <time.h>
 
 #define HIGHEST_PRIORITY (WINDOW_LIMIT + 1)
 
@@ -12,6 +14,11 @@ typedef struct {
   simui_text_t *text;
   vec2f offset;
 } font_offset_t;
+
+typedef struct {
+  simui_widget_t *widget;
+  vec2f offset;
+} widget_offset_t;
 
 // Hepler functions
 void simui_window_sort(simui_context_t *context) {
@@ -54,7 +61,7 @@ void regenerate_fonts(simui_context_t *context) {
 // simui context implementation
 simui_context_t simui_context_create(SDL_Window *target_window,
                                      SDL_Renderer *renderer) {
-
+  srand(time(NULL));
   simui_context_t context;
 
   if (target_window == NULL || renderer == NULL) {
@@ -67,6 +74,7 @@ simui_context_t simui_context_create(SDL_Window *target_window,
 
   context.window_buffer_index = 0;
   context.text_buffer_index = 0;
+  context.widget_buffer_index = 0;
   context.focused_uuid = 0;
   context.sort_window_buffer = false;
   SDL_RWops *font_data_rwops =
@@ -78,8 +86,13 @@ simui_context_t simui_context_create(SDL_Window *target_window,
 
 void simui_context_handle_event(simui_context_t *context, SDL_Event *event) {
   static vec2i offset = {.x = 0, .y = 0};
+
   static font_offset_t font_offsets[256] = {0};
   static size_t font_offset_index = 0;
+
+  static widget_offset_t widget_offsets[256] = {0};
+  static size_t widget_offset_index = 0;
+
   for (size_t i = 0; i < context->window_buffer_index; ++i) {
     simui_window_t *current_window = context->window_buffer[i];
     if (event->motion.x > current_window->pos.x &&
@@ -88,13 +101,18 @@ void simui_context_handle_event(simui_context_t *context, SDL_Event *event) {
         event->motion.y < (current_window->pos.y + current_window->size.y)) {
       if (event->type == SDL_MOUSEBUTTONDOWN &&
           event->button.button == SDL_BUTTON_LEFT) {
+
         font_offset_index = 0;
         memset(font_offsets, 0, sizeof(font_offsets));
+        widget_offset_index = 0;
+        memset(widget_offsets, 0, sizeof(widget_offsets));
+
         current_window->priority = HIGHEST_PRIORITY;
         context->focused_uuid = current_window->uuid;
         context->sort_window_buffer = true;
         offset.x = event->motion.x - current_window->pos.x;
         offset.y = event->motion.y - current_window->pos.y;
+
         if (event->motion.y < (current_window->pos.y + 30)) {
           current_window->moving = true;
           for (size_t i = 0; i < current_window->font_uuid_buffer_index; ++i) {
@@ -104,6 +122,16 @@ void simui_context_handle_event(simui_context_t *context, SDL_Event *event) {
                 .text = text,
                 .offset = (vec2f){.x = text->pos.x - current_window->pos.x,
                                   .y = text->pos.y - current_window->pos.y}};
+          }
+
+          for (size_t i = 0; i < current_window->widget_uuid_buffer_index;
+               ++i) {
+            simui_widget_t *widget =
+                get_widget(context, current_window->widget_uuid_buffer[i]);
+            widget_offsets[widget_offset_index++] = (widget_offset_t){
+                .widget = widget,
+                .offset = (vec2f){.x = widget->pos.x - current_window->pos.x,
+                                  .y = widget->pos.y - current_window->pos.y}};
           }
         }
       }
@@ -129,6 +157,29 @@ void simui_context_handle_event(simui_context_t *context, SDL_Event *event) {
     context->window_buffer[context->window_buffer_index - 1]->moving = false;
   }
 
+  for (size_t i = 0;
+       i < context->window_buffer[context->window_buffer_index - 1]
+               ->widget_uuid_buffer_index;
+       ++i) {
+    uint64_t uuid = context->window_buffer[context->window_buffer_index - 1]
+                        ->widget_uuid_buffer[i];
+    simui_widget_t *widget = get_widget(context, uuid);
+
+    if (event->motion.x > widget->pos.x &&
+        event->motion.x < widget->pos.x + widget->size.x &&
+        event->motion.y > widget->pos.y &&
+        event->motion.y < widget->pos.y + widget->size.y) {
+      if (event->type == SDL_MOUSEBUTTONDOWN &&
+          event->button.button == SDL_BUTTON_LEFT) {
+        widget->clicked = 1;
+      }
+      if (event->type == SDL_MOUSEBUTTONUP &&
+          event->button.button == SDL_BUTTON_LEFT) {
+        widget->clicked = 0;
+      }
+    }
+  }
+
   if (context->window_buffer[context->window_buffer_index - 1]->moving) {
     simui_window_t *current_window =
         context->window_buffer[context->window_buffer_index - 1];
@@ -139,6 +190,12 @@ void simui_context_handle_event(simui_context_t *context, SDL_Event *event) {
           current_window->pos.x + font_offsets[i].offset.x;
       font_offsets[i].text->pos.y =
           current_window->pos.y + font_offsets[i].offset.y;
+    }
+    for (size_t i = 0; i < widget_offset_index; ++i) {
+      widget_offsets[i].widget->pos.x =
+          current_window->pos.x + widget_offsets[i].offset.x;
+      widget_offsets[i].widget->pos.y =
+          current_window->pos.y + widget_offsets[i].offset.y;
     }
   }
 }
@@ -165,6 +222,30 @@ void simui_context_render(simui_context_t *context) {
     SDL_SetRenderDrawColor(context->renderer, 150, 150, 150, 255);
     SDL_RenderDrawRectF(context->renderer, &background);
 
+    for (size_t j = 0; j < context->window_buffer[i]->widget_uuid_buffer_index;
+         ++j) {
+      uint64_t widget_uuid = context->window_buffer[i]->widget_uuid_buffer[j];
+      simui_widget_t *widget = get_widget(context, widget_uuid);
+
+      if (widget == NULL) {
+        exit(12);
+      }
+
+      switch (widget->type) {
+      case SIMUI_BUTTON: {
+        SDL_Rect button_rect = {.x = widget->pos.x,
+                                .y = widget->pos.y,
+                                .w = widget->size.x,
+                                .h = widget->size.y};
+        SDL_SetRenderDrawColor(context->renderer, 50, 50, 50, 255);
+        SDL_RenderFillRect(context->renderer, &button_rect);
+        SDL_SetRenderDrawColor(context->renderer, 255, 255, 255, 255);
+        SDL_RenderDrawRect(context->renderer, &button_rect);
+        break;
+      }
+      }
+    }
+
     for (size_t j = 0; j < context->window_buffer[i]->font_uuid_buffer_index;
          ++j) {
       uint64_t text_uuid = context->window_buffer[i]->font_uuid_buffer[j];
@@ -178,6 +259,10 @@ void simui_context_render(simui_context_t *context) {
   }
 }
 
+bool simui_button_clicked(simui_context_t *context, uint64_t uuid) {
+  return get_widget(context, uuid)->clicked;
+}
+
 void simui_context_destroy(simui_context_t *context) {
   for (size_t i = 0; i < context->window_buffer_index; ++i) {
     free(context->window_buffer[i]);
@@ -185,6 +270,10 @@ void simui_context_destroy(simui_context_t *context) {
   for (size_t i = 0; i < context->text_buffer_index; ++i) {
     SDL_DestroyTexture(context->text_buffer[i]->texture);
     free(context->text_buffer[i]);
+  }
+
+  for (size_t i = 0; i < context->widget_buffer_index; ++i) {
+    free(context->widget_buffer[i]);
   }
 
   TTF_CloseFont(context->font);

@@ -14,11 +14,13 @@ struct simui_text_t;
 typedef struct simui_window_t {
   vec2f pos;
   vec2f size;
-  uint32_t priority;
+  uint64_t priority;
   uint64_t uuid;
   uint64_t title_uuid;
   uint64_t font_uuid_buffer[UUID_LIMIT];
   size_t font_uuid_buffer_index;
+  uint64_t widget_uuid_buffer[UUID_LIMIT];
+  size_t widget_uuid_buffer_index;
   char title[256];
   bool moving;
 } simui_window_t;

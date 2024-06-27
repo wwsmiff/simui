@@ -1,8 +1,10 @@
 #include "context.h"
 #include "text.h"
+#include "widget.h"
 #include "window.h"
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
+#include <time.h>
 
 int main(void) {
   SDL_Init(SDL_INIT_VIDEO);
@@ -23,6 +25,16 @@ int main(void) {
   simui_window_set_title(&context, "A new title.");
   simui_window_text_create(&context, "Lorem ipsum dolor.", (vec2f){5.0f, 5.0f});
 
+  uint64_t btn1 =
+      simui_window_widget_create(&context, SIMUI_BUTTON, "Button 1",
+                                 (vec2f){5.0f, 75.0f}, (vec2f){50.0f, 25.0f});
+  uint64_t btn2 =
+      simui_window_widget_create(&context, SIMUI_BUTTON, "Button 2",
+                                 (vec2f){5.0f, 125.0f}, (vec2f){50.0f, 25.0f});
+  uint64_t btn3 = simui_window_widget_create(
+      &context, SIMUI_BUTTON, "Very long button label", (vec2f){5.0f, 175.0f},
+      (vec2f){50.0f, 25.0f});
+
   simui_window_create(&context, (vec2f){30.0f, 30.0f}, (vec2f){300.0f, 300.0f});
   simui_window_text_create(&context, "The quick brown fox.",
                            (vec2f){5.0f, 5.0f});
@@ -33,6 +45,16 @@ int main(void) {
         running = false;
       }
       simui_context_handle_event(&context, &e);
+
+      if (simui_button_clicked(&context, btn1)) {
+        printf("Button 1\n");
+      }
+      if (simui_button_clicked(&context, btn2)) {
+        printf("Button 2\n");
+      }
+      if (simui_button_clicked(&context, btn3)) {
+        printf("Button 3\n");
+      }
     }
 
     SDL_SetRenderDrawColor(renderer, 100, 100, 255, 255);

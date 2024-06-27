@@ -16,7 +16,8 @@ void simui_window_create(struct simui_context_t *context, vec2f pos,
   window->moving = false;
   window->uuid = ((uint64_t)(rand() % UINT64_MAX) << 16) ^ window->priority;
   window->font_uuid_buffer_index = 0;
-  sprintf(window->title, "window uuid: %llx", window->uuid);
+  window->widget_uuid_buffer_index = 0;
+  sprintf(window->title, "window uuid: %lx", window->uuid);
 
   context->window_buffer[context->window_buffer_index++] = window;
   context->focused_uuid = window->uuid;
