@@ -1,7 +1,4 @@
-#include "context.h"
-#include "text.h"
-#include "widget.h"
-#include "window.h"
+#include "simui.h"
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
 #include <time.h>
