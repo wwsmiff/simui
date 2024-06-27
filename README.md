@@ -77,6 +77,7 @@ int main(void) {
 # Requirements
 - C compiler
 - SDL2
+- SDL2_ttf
 
 # Build and run
 ```
