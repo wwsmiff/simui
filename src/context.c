@@ -169,13 +169,20 @@ void simui_context_handle_event(simui_context_t *context, SDL_Event *event) {
         event->motion.x < widget->pos.x + widget->size.x &&
         event->motion.y > widget->pos.y &&
         event->motion.y < widget->pos.y + widget->size.y) {
-      if (event->type == SDL_MOUSEBUTTONDOWN &&
-          event->button.button == SDL_BUTTON_LEFT) {
-        widget->clicked = 1;
-      }
-      if (event->type == SDL_MOUSEBUTTONUP &&
-          event->button.button == SDL_BUTTON_LEFT) {
-        widget->clicked = 0;
+      if (widget->type == SIMUI_BUTTON) {
+        if (event->type == SDL_MOUSEBUTTONDOWN &&
+            event->button.button == SDL_BUTTON_LEFT) {
+          widget->button.clicked = 1;
+        }
+        if (event->type == SDL_MOUSEBUTTONUP &&
+            event->button.button == SDL_BUTTON_LEFT) {
+          widget->button.clicked = 0;
+        }
+      } else if (widget->type == SIMUI_CHECKBOX) {
+        if (event->type == SDL_MOUSEBUTTONDOWN &&
+            event->button.button == SDL_BUTTON_LEFT) {
+          widget->checkbox.active = !widget->checkbox.active;
+        }
       }
     }
   }
@@ -243,6 +250,23 @@ void simui_context_render(simui_context_t *context) {
         SDL_RenderDrawRect(context->renderer, &button_rect);
         break;
       }
+      case SIMUI_CHECKBOX: {
+        SDL_FRect checkbox_outline = {.x = widget->pos.x,
+                                      .y = widget->pos.y,
+                                      .w = widget->size.x,
+                                      .h = widget->size.y};
+
+        SDL_FRect checkbox_fill = {.x = widget->pos.x + 3.0f,
+                                   .y = widget->pos.y + 3.0f,
+                                   .w = widget->size.x - 6.0f,
+                                   .h = widget->size.y - 6.0f};
+        SDL_SetRenderDrawColor(context->renderer, 200, 200, 200, 255);
+        if (widget->checkbox.active) {
+          SDL_RenderFillRectF(context->renderer, &checkbox_fill);
+        }
+        SDL_RenderDrawRectF(context->renderer, &checkbox_outline);
+        break;
+      }
       }
     }
 
@@ -260,7 +284,11 @@ void simui_context_render(simui_context_t *context) {
 }
 
 bool simui_button_clicked(simui_context_t *context, uint64_t uuid) {
-  return get_widget(context, uuid)->clicked;
+  return get_widget(context, uuid)->button.clicked;
+}
+
+bool simui_checkbox_active(simui_context_t *context, uint64_t uuid) {
+  return get_widget(context, uuid)->checkbox.active;
 }
 
 void simui_context_destroy(simui_context_t *context) {

@@ -39,6 +39,7 @@ void simui_context_render(simui_context_t *context);
 void simui_context_handle_event(simui_context_t *context,
                                 union SDL_Event *event);
 bool simui_button_clicked(simui_context_t *context, uint64_t uuid);
+bool simui_checkbox_active(simui_context_t *context, uint64_t uuid);
 
 void simui_context_destroy(simui_context_t *context);
 
