@@ -7,6 +7,7 @@
 #define MAX(x, y) ((x) > (y)) ? (x) : (y)
 
 uint64_t simui_window_widget_create(simui_context_t *context,
+                                    uint64_t window_uuid,
                                     simui_widget_type_t type, const char *label,
                                     vec2f pos, vec2f size) {
   if (context->window_buffer_index < 1) {
@@ -16,13 +17,21 @@ uint64_t simui_window_widget_create(simui_context_t *context,
   widget->uuid =
       ((uint64_t)(rand() % UINT64_MAX) << 16) ^ context->widget_buffer_index;
   widget->type = type;
-  simui_window_t *current_window =
-      context->window_buffer[context->window_buffer_index - 1];
+
+  simui_window_t *current_window = NULL;
+  if (window_uuid == 0) {
+    current_window = context->window_buffer[context->window_buffer_index - 1];
+  } else {
+    current_window = get_window(context, window_uuid);
+    if (current_window == NULL) {
+      error("window [uuid: %lx] does not exist.\n", window_uuid);
+    }
+  }
 
   widget->pos = (vec2f){.x = current_window->pos.x + pos.x,
                         .y = current_window->pos.y + pos.y};
 
-  simui_window_text_create(context, label, (vec2f){pos.x, pos.y});
+  simui_window_text_create(context, window_uuid, label, (vec2f){pos.x, pos.y});
 
   simui_text_t *label_text =
       context->text_buffer[context->text_buffer_index - 1];

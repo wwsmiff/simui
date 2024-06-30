@@ -33,6 +33,7 @@ extern "C" {
 #endif
 
 uint64_t simui_window_widget_create(struct simui_context_t *context,
+                                    uint64_t window_uuid,
                                     simui_widget_type_t type, const char *label,
                                     vec2f position, vec2f size);
 #ifdef __cplusplus

@@ -21,7 +21,8 @@ extern "C" {
 #endif
 
 uint64_t simui_window_text_create(struct simui_context_t *context,
-                                  const char *str, vec2f pos);
+                                  uint64_t window_uuid, const char *str,
+                                  vec2f pos);
 #ifdef __cplusplus
 }
 #endif

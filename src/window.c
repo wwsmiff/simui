@@ -7,8 +7,8 @@
 #include <stdlib.h>
 #include <time.h>
 
-void simui_window_create(struct simui_context_t *context, vec2f pos,
-                         vec2f size) {
+uint64_t simui_window_create(struct simui_context_t *context, vec2f pos,
+                             vec2f size) {
   if (context == NULL) {
     error("Context cannot be null.\n");
   }
@@ -27,7 +27,7 @@ void simui_window_create(struct simui_context_t *context, vec2f pos,
   context->focused_uuid = window->uuid;
   context->sort_window_buffer = true;
 
-  window->title_uuid = simui_window_text_create(context, window->title,
+  window->title_uuid = simui_window_text_create(context, 0, window->title,
                                                 (vec2f){.x = 0.0f, .y = 0.0f});
   simui_text_t *title_text =
       context->text_buffer[context->text_buffer_index - 1];
@@ -35,15 +35,26 @@ void simui_window_create(struct simui_context_t *context, vec2f pos,
                       ((window->pos.x + window->size.x) / 2.0f) -
                       (title_text->size.x / 2.0f);
   title_text->pos.y = (window->pos.y + 15.0f) - (title_text->size.y / 2.0f);
+
+  return window->uuid;
 }
 
 void simui_window_set_title(struct simui_context_t *context,
-                            const char *title) {
+                            uint64_t window_uuid, const char *title) {
   if (context->window_buffer_index < 1) {
     error("Must have at least one window to set title.\n");
   }
-  simui_window_t *current_window =
-      context->window_buffer[context->window_buffer_index - 1];
+
+  simui_window_t *current_window = NULL;
+  if (window_uuid == 0) {
+    current_window = context->window_buffer[context->window_buffer_index - 1];
+  } else {
+    current_window = get_window(context, window_uuid);
+    if (current_window == NULL) {
+      error("window [uuid: %lx] does not exist.\n", window_uuid);
+    }
+  }
+
   strncpy(current_window->title, title, 256);
   simui_text_t *title_text = get_text(context, current_window->title_uuid);
   SDL_DestroyTexture(title_text->texture);
