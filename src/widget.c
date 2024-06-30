@@ -1,14 +1,17 @@
-#include "widget.h"
-#include "context.h"
-#include "text.h"
-#include "window.h"
+#include "simui/widget.h"
+#include "simui/context.h"
+#include "simui/helper.h"
+#include "simui/text.h"
+#include "simui/window.h"
 
 #define MAX(x, y) ((x) > (y)) ? (x) : (y)
 
 uint64_t simui_window_widget_create(simui_context_t *context,
                                     simui_widget_type_t type, const char *label,
                                     vec2f pos, vec2f size) {
-
+  if (context->window_buffer_index < 1) {
+    error("Must have at least one window to create widget(s).\n");
+  }
   simui_widget_t *widget = (simui_widget_t *)(malloc(sizeof(simui_widget_t)));
   widget->uuid =
       ((uint64_t)(rand() % UINT64_MAX) << 16) ^ context->widget_buffer_index;

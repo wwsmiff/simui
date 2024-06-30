@@ -25,8 +25,16 @@ typedef struct simui_window_t {
   bool moving;
 } simui_window_t;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void simui_window_create(struct simui_context_t *context, vec2f pos,
                          vec2f size);
 void simui_window_set_title(struct simui_context_t *context, const char *title);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // SIMUI_WINDOW_H_

@@ -32,6 +32,10 @@ typedef struct simui_context_t {
   bool sort_window_buffer;
 } simui_context_t;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 simui_context_t simui_context_create(struct SDL_Window *window,
                                      struct SDL_Renderer *renderer);
 
@@ -42,5 +46,8 @@ bool simui_button_clicked(simui_context_t *context, uint64_t uuid);
 bool simui_checkbox_active(simui_context_t *context, uint64_t uuid);
 
 void simui_context_destroy(simui_context_t *context);
+#ifdef __cplusplus
+}
+#endif
 
 #endif // SIMHUI_CONTEXT_H_

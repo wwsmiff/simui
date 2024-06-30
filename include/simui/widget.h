@@ -28,8 +28,15 @@ typedef struct simui_widget_t {
   };
 } simui_widget_t;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 uint64_t simui_window_widget_create(struct simui_context_t *context,
                                     simui_widget_type_t type, const char *label,
                                     vec2f position, vec2f size);
+#ifdef __cplusplus
+}
+#endif
 
 #endif // SIMUI_WIDGET_H_

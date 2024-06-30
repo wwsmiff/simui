@@ -1,7 +1,7 @@
-#include "window.h"
-#include "context.h"
-#include "helper.h"
-#include "text.h"
+#include "simui/window.h"
+#include "simui/context.h"
+#include "simui/helper.h"
+#include "simui/text.h"
 #include <SDL2/SDL_ttf.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -9,6 +9,10 @@
 
 void simui_window_create(struct simui_context_t *context, vec2f pos,
                          vec2f size) {
+  if (context == NULL) {
+    error("Context cannot be null.\n");
+  }
+
   simui_window_t *window = (simui_window_t *)(malloc(sizeof(simui_window_t)));
   window->pos = pos;
   window->size = size;
@@ -35,6 +39,9 @@ void simui_window_create(struct simui_context_t *context, vec2f pos,
 
 void simui_window_set_title(struct simui_context_t *context,
                             const char *title) {
+  if (context->window_buffer_index < 1) {
+    error("Must have at least one window to set title.\n");
+  }
   simui_window_t *current_window =
       context->window_buffer[context->window_buffer_index - 1];
   strncpy(current_window->title, title, 256);

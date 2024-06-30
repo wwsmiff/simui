@@ -1,9 +1,9 @@
-#include "context.h"
-#include "font_data.h"
-#include "helper.h"
-#include "text.h"
-#include "widget.h"
-#include "window.h"
+#include "simui/context.h"
+#include "simui/font_data.h"
+#include "simui/helper.h"
+#include "simui/text.h"
+#include "simui/widget.h"
+#include "simui/window.h"
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
 #include <time.h>
@@ -64,9 +64,10 @@ simui_context_t simui_context_create(SDL_Window *target_window,
   srand(time(NULL));
   simui_context_t context;
 
+  TTF_Init();
+
   if (target_window == NULL || renderer == NULL) {
-    fprintf(stderr, "Need to specify window and renderer.\n");
-    exit(1);
+    error("Need to specify window and renderer.\n");
   } else {
     context.target_window = target_window;
     context.renderer = renderer;
@@ -85,6 +86,10 @@ simui_context_t simui_context_create(SDL_Window *target_window,
 }
 
 void simui_context_handle_event(simui_context_t *context, SDL_Event *event) {
+  if (context->window_buffer_index < 1) {
+    return;
+  }
+
   static vec2i offset = {.x = 0, .y = 0};
 
   static font_offset_t font_offsets[256] = {0};
@@ -94,6 +99,7 @@ void simui_context_handle_event(simui_context_t *context, SDL_Event *event) {
   static size_t widget_offset_index = 0;
 
   for (size_t i = 0; i < context->window_buffer_index; ++i) {
+
     simui_window_t *current_window = context->window_buffer[i];
     if (event->motion.x > current_window->pos.x &&
         event->motion.x < (current_window->pos.x + current_window->size.x) &&
@@ -208,6 +214,9 @@ void simui_context_handle_event(simui_context_t *context, SDL_Event *event) {
 }
 
 void simui_context_render(simui_context_t *context) {
+  if (context->window_buffer_index < 1) {
+    return;
+  }
   regenerate_fonts(context);
   for (size_t i = 0; i < context->window_buffer_index; ++i) {
     SDL_FRect background = {.x = context->window_buffer[i]->pos.x,
@@ -284,11 +293,25 @@ void simui_context_render(simui_context_t *context) {
 }
 
 bool simui_button_clicked(simui_context_t *context, uint64_t uuid) {
-  return get_widget(context, uuid)->button.clicked;
+  simui_widget_t *button_widget = get_widget(context, uuid);
+  if (button_widget == NULL) {
+    error("button [uuid: %lx] not found.\n", uuid);
+  }
+  if (button_widget->type != SIMUI_BUTTON) {
+    error("widget [uuid: %lx] is not a button.\n", uuid);
+  }
+  return button_widget->button.clicked;
 }
 
 bool simui_checkbox_active(simui_context_t *context, uint64_t uuid) {
-  return get_widget(context, uuid)->checkbox.active;
+  simui_widget_t *checkbox_widget = get_widget(context, uuid);
+  if (checkbox_widget == NULL) {
+    error("checkbox [uuid: %lx] not found.\n", uuid);
+  }
+  if (checkbox_widget->type != SIMUI_CHECKBOX) {
+    error("widget [uuid: %lx] is not a checkbox.\n", uuid);
+  }
+  return checkbox_widget->checkbox.active;
 }
 
 void simui_context_destroy(simui_context_t *context) {
@@ -303,6 +326,6 @@ void simui_context_destroy(simui_context_t *context) {
   for (size_t i = 0; i < context->widget_buffer_index; ++i) {
     free(context->widget_buffer[i]);
   }
-
   TTF_CloseFont(context->font);
+  TTF_Quit();
 }

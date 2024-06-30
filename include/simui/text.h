@@ -16,7 +16,14 @@ typedef struct simui_text_t {
   uint64_t uuid;
 } simui_text_t;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 uint64_t simui_window_text_create(struct simui_context_t *context,
                                   const char *str, vec2f pos);
+#ifdef __cplusplus
+}
+#endif
 
 #endif // SIMUI_TEXT_H_

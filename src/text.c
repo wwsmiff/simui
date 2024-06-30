@@ -1,13 +1,17 @@
-#include "text.h"
-#include "context.h"
-#include "font_data.h"
-#include "window.h"
+#include "simui/text.h"
+#include "simui/context.h"
+#include "simui/font_data.h"
+#include "simui/helper.h"
+#include "simui/window.h"
 #include <SDL2/SDL_ttf.h>
 #include <string.h>
 #include <time.h>
 
 uint64_t simui_window_text_create(struct simui_context_t *context,
                                   const char *str, vec2f pos) {
+  if (context->window_buffer_index < 1) {
+    error("Must have at least one window to create text.\n");
+  }
   simui_window_t *current_window =
       context->window_buffer[context->window_buffer_index - 1];
   simui_text_t *text = (simui_text_t *)(malloc(sizeof(simui_text_t)));
