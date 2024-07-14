@@ -18,6 +18,10 @@ uint64_t simui_window_create(struct simui_context_t *context, vec2f pos,
   window->size = size;
   window->priority = context->window_buffer_index;
   window->moving = false;
+  window->scroll = false;
+  window->scrollbar_thumb.x = (window->pos.x + window->size.x) - 21.0f;
+  window->scrollbar_thumb.y = window->pos.y + 30.0f;
+
   window->uuid = ((uint64_t)(rand() % UINT64_MAX) << 16) ^ window->priority;
   window->font_uuid_buffer_index = 0;
   window->widget_uuid_buffer_index = 0;

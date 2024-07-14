@@ -9,7 +9,7 @@
 void error(const char *fmt, ...) {
   va_list vargs;
   va_start(vargs, fmt);
-  fprintf(stderr, fmt, vargs);
+  vfprintf(stderr, fmt, vargs);
   va_end(vargs);
   exit(1);
 }

@@ -10,6 +10,9 @@
 
 #define HIGHEST_PRIORITY (WINDOW_LIMIT + 1)
 
+#define MIN(a, b) ((a) < (b) ? (a) : (b))
+#define MAX(a, b) ((a) > (b) ? (a) : (b))
+
 typedef struct {
   simui_text_t *text;
   vec2f offset;
@@ -58,7 +61,7 @@ void regenerate_fonts(simui_context_t *context) {
   }
 }
 
-// simui context implementation
+// simui context functions implementation
 simui_context_t simui_context_create(SDL_Window *target_window,
                                      SDL_Renderer *renderer) {
   srand(time(NULL));
@@ -80,8 +83,7 @@ simui_context_t simui_context_create(SDL_Window *target_window,
   context.sort_window_buffer = false;
   SDL_RWops *font_data_rwops =
       SDL_RWFromMem(proggy_clean_font_data, proggy_clean_font_data_len);
-  context.font = TTF_OpenFontRW(font_data_rwops, 0, 32);
-  SDL_RWclose(font_data_rwops);
+  context.font = TTF_OpenFontRW(font_data_rwops, 1, 32);
   return context;
 }
 
@@ -98,8 +100,10 @@ void simui_context_handle_event(simui_context_t *context, SDL_Event *event) {
   static widget_offset_t widget_offsets[256] = {0};
   static size_t widget_offset_index = 0;
 
-  for (size_t i = 0; i < context->window_buffer_index; ++i) {
+  static bool move_scrollbar_thumb = false;
+  static vec2f thumb_offset = {.x = 0, .y = 0};
 
+  for (size_t i = 0; i < context->window_buffer_index; ++i) {
     simui_window_t *current_window = context->window_buffer[i];
     if (event->motion.x > current_window->pos.x &&
         event->motion.x < (current_window->pos.x + current_window->size.x) &&
@@ -139,6 +143,21 @@ void simui_context_handle_event(simui_context_t *context, SDL_Event *event) {
                 .offset = (vec2f){.x = widget->pos.x - current_window->pos.x,
                                   .y = widget->pos.y - current_window->pos.y}};
           }
+
+          thumb_offset.x =
+              current_window->scrollbar_thumb.x - current_window->pos.x;
+          thumb_offset.y =
+              current_window->scrollbar_thumb.y - current_window->pos.y;
+        }
+
+        if (event->motion.x > (current_window->scrollbar_thumb.x) &&
+            event->motion.x < (current_window->scrollbar_thumb.x + 20.0f) &&
+            event->motion.y > (current_window->scrollbar_thumb.y) &&
+            event->motion.y < (current_window->scrollbar_thumb.y + 20.0f) &&
+            current_window->scroll) {
+          move_scrollbar_thumb = true;
+          thumb_offset.x = event->motion.x - current_window->scrollbar_thumb.x;
+          thumb_offset.y = event->motion.y - current_window->scrollbar_thumb.y;
         }
       }
     }
@@ -161,6 +180,7 @@ void simui_context_handle_event(simui_context_t *context, SDL_Event *event) {
   if (event->type == SDL_MOUSEBUTTONUP &&
       event->button.button == SDL_BUTTON_LEFT) {
     context->window_buffer[context->window_buffer_index - 1]->moving = false;
+    move_scrollbar_thumb = false;
   }
 
   for (size_t i = 0;
@@ -210,6 +230,16 @@ void simui_context_handle_event(simui_context_t *context, SDL_Event *event) {
       widget_offsets[i].widget->pos.y =
           current_window->pos.y + widget_offsets[i].offset.y;
     }
+    current_window->scrollbar_thumb.x = current_window->pos.x + thumb_offset.x;
+    current_window->scrollbar_thumb.y = current_window->pos.y + thumb_offset.y;
+  }
+
+  if (move_scrollbar_thumb) {
+    simui_window_t *current_window =
+        context->window_buffer[context->window_buffer_index - 1];
+    current_window->scrollbar_thumb.y = MIN(
+        current_window->pos.y + current_window->size.y - 21.0f,
+        MAX(event->motion.y - thumb_offset.y, current_window->pos.y + 30.0f));
   }
 }
 
@@ -219,14 +249,15 @@ void simui_context_render(simui_context_t *context) {
   }
   regenerate_fonts(context);
   for (size_t i = 0; i < context->window_buffer_index; ++i) {
-    SDL_FRect background = {.x = context->window_buffer[i]->pos.x,
-                            .y = context->window_buffer[i]->pos.y,
-                            .w = context->window_buffer[i]->size.x,
-                            .h = context->window_buffer[i]->size.y};
+    simui_window_t *current_window = context->window_buffer[i];
+    SDL_FRect background = {.x = current_window->pos.x,
+                            .y = current_window->pos.y,
+                            .w = current_window->size.x,
+                            .h = current_window->size.y};
 
-    SDL_FRect titlebar = {.x = context->window_buffer[i]->pos.x,
-                          .y = context->window_buffer[i]->pos.y,
-                          .w = context->window_buffer[i]->size.x,
+    SDL_FRect titlebar = {.x = current_window->pos.x,
+                          .y = current_window->pos.y,
+                          .w = current_window->size.x,
                           .h = 30.0f};
 
     SDL_SetRenderDrawColor(context->renderer, 30, 30, 30, 255);
@@ -238,14 +269,26 @@ void simui_context_render(simui_context_t *context) {
     SDL_SetRenderDrawColor(context->renderer, 150, 150, 150, 255);
     SDL_RenderDrawRectF(context->renderer, &background);
 
-    for (size_t j = 0; j < context->window_buffer[i]->widget_uuid_buffer_index;
-         ++j) {
-      uint64_t widget_uuid = context->window_buffer[i]->widget_uuid_buffer[j];
-      simui_widget_t *widget = get_widget(context, widget_uuid);
+    if (current_window->scroll) {
+      SDL_FRect scrollbar = {
+          .x = (current_window->pos.x + current_window->size.x) - 21.0f,
+          .y = current_window->pos.y + 30.0f,
+          .w = 20.0f,
+          .h = current_window->size.y - 31.0f};
+      SDL_SetRenderDrawColor(context->renderer, 70, 70, 70, 255);
+      SDL_RenderFillRectF(context->renderer, &scrollbar);
+      SDL_FRect scrollbar_thumb = {.x = current_window->scrollbar_thumb.x,
+                                   .y = current_window->scrollbar_thumb.y,
+                                   .w = 20.0f,
+                                   .h = 20.0f};
 
-      if (widget == NULL) {
-        exit(12);
-      }
+      SDL_SetRenderDrawColor(context->renderer, 50, 50, 50, 255);
+      SDL_RenderFillRectF(context->renderer, &scrollbar_thumb);
+    }
+
+    for (size_t j = 0; j < current_window->widget_uuid_buffer_index; ++j) {
+      uint64_t widget_uuid = current_window->widget_uuid_buffer[j];
+      simui_widget_t *widget = get_widget(context, widget_uuid);
 
       switch (widget->type) {
       case SIMUI_BUTTON: {
@@ -253,6 +296,9 @@ void simui_context_render(simui_context_t *context) {
                                 .y = widget->pos.y,
                                 .w = widget->size.x,
                                 .h = widget->size.y};
+        if (widget->size.x == 0 || widget->size.y == 0) {
+          continue;
+        }
         SDL_SetRenderDrawColor(context->renderer, 50, 50, 50, 255);
         SDL_RenderFillRect(context->renderer, &button_rect);
         SDL_SetRenderDrawColor(context->renderer, 255, 255, 255, 255);
@@ -279,10 +325,16 @@ void simui_context_render(simui_context_t *context) {
       }
     }
 
-    for (size_t j = 0; j < context->window_buffer[i]->font_uuid_buffer_index;
-         ++j) {
-      uint64_t text_uuid = context->window_buffer[i]->font_uuid_buffer[j];
+    for (size_t j = 0; j < current_window->font_uuid_buffer_index; ++j) {
+      uint64_t text_uuid = current_window->font_uuid_buffer[j];
       simui_text_t *text = get_text(context, text_uuid);
+      if (text_uuid != current_window->title_uuid &&
+              text->pos.y < (current_window->pos.y + 30.0f) ||
+          text->pos.y >
+              (current_window->pos.y + current_window->size.y - 30.0f)) {
+        current_window->scroll = true;
+        continue;
+      }
       SDL_Rect font_rect = {.x = text->pos.x,
                             .y = text->pos.y,
                             .w = text->size.x,
@@ -329,3 +381,6 @@ void simui_context_destroy(simui_context_t *context) {
   TTF_CloseFont(context->font);
   TTF_Quit();
 }
+
+#undef MIN
+#undef MAX

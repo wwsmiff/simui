@@ -1,6 +1,7 @@
 #include "simui/simui.h"
 #include <array>
 #include <chrono>
+#include <cstdint>
 #include <format>
 #include <functional>
 #include <memory>
@@ -23,14 +24,16 @@ int main() {
   SDL_Event event;
 
   std::string stopwatch_string{};
-
   int hours{};
   int minutes{};
   int seconds{};
   int milliseconds{};
+  std::array<std::string, 256> timestamps{};
+  size_t timestamp_index{};
 
   simui_context_t context = simui_context_create(window.get(), renderer.get());
-  simui_window_create(&context, (vec2f){50.0f, 50.0f}, (vec2f){300.0f, 400.0f});
+  uint64_t main_window = simui_window_create(&context, (vec2f){50.0f, 50.0f},
+                                             (vec2f){300.0f, 400.0f});
   simui_window_set_title(&context, 0, "Stopwatch");
   simui_window_text_create(&context, 0, stopwatch_string.data(),
                            (vec2f){110.0f, 100.0f});
@@ -40,9 +43,13 @@ int main() {
   uint64_t reset_button = simui_window_widget_create(
       &context, 0, SIMUI_BUTTON, "Reset", (vec2f){30.0f, 250.0f},
       (vec2f){100.0f, 25.0f});
-  uint64_t quit_button = simui_window_widget_create(
-      &context, 0, SIMUI_BUTTON, "Quit", (vec2f){150.0f, 250.0f},
+  uint64_t timestamp_button = simui_window_widget_create(
+      &context, 0, SIMUI_BUTTON, "Timestamp", (vec2f){150.0f, 250.0f},
       (vec2f){100.0f, 25.0f});
+
+  uint64_t timestamp_window = simui_window_create(
+      &context, (vec2f){450.0f, 50.0f}, (vec2f){300.0f, 400.0f});
+  simui_window_set_title(&context, 0, "Timestamp");
 
   auto start{std::chrono::high_resolution_clock::now()};
 
@@ -64,8 +71,15 @@ int main() {
         seconds = 0;
         milliseconds = 0;
       }
-      if (simui_button_clicked(&context, quit_button)) {
-        running = false;
+
+      if (simui_button_clicked(&context, timestamp_button)) {
+        timestamps.at(timestamp_index) = stopwatch_string;
+        if (timestamp_index <= timestamps.size() - 1) {
+          timestamp_index++;
+        }
+        simui_window_text_create(&context, timestamp_window,
+                                 timestamps.at(timestamp_index - 1).c_str(),
+                                 (vec2f){25.0f, timestamp_index * 15.0f});
       }
     }
 
