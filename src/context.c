@@ -240,6 +240,27 @@ void simui_context_handle_event(simui_context_t *context, SDL_Event *event) {
     current_window->scrollbar_thumb.y = MIN(
         current_window->pos.y + current_window->size.y - 21.0f,
         MAX(event->motion.y - thumb_offset.y, current_window->pos.y + 30.0f));
+    printf("%d\n", event->motion.yrel);
+    for (size_t i = 0; i < current_window->font_uuid_buffer_index; ++i) {
+      simui_text_t *text =
+          get_text(context, current_window->font_uuid_buffer[i]);
+      if (text->uuid != current_window->title_uuid) {
+        if (event->motion.yrel < 0) {
+          text->pos.y++;
+        } else if (event->motion.yrel > 0) {
+          text->pos.y--;
+        }
+      }
+    }
+    for (size_t i = 0; i < current_window->widget_uuid_buffer_index; ++i) {
+      simui_widget_t *widget =
+          get_widget(context, current_window->widget_uuid_buffer[i]);
+      if (event->motion.yrel < 0) {
+        widget->pos.y++;
+      } else if (event->motion.yrel > 0) {
+        widget->pos.y--;
+      }
+    }
   }
 }
 
